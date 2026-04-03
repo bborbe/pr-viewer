@@ -1,7 +1,8 @@
 ---
-status: created
+status: approved
 spec: [001-commit-diff-viewer]
 created: "2026-04-03T12:00:00Z"
+queued: "2026-04-03T12:26:01Z"
 branch: dark-factory/commit-diff-viewer
 ---
 
@@ -12,15 +13,14 @@ branch: dark-factory/commit-diff-viewer
 - Each file in the tree shows a colored change-type icon: green "+" for added, orange pencil for modified, red "−" for deleted, grey arrow for renamed
 - Folders are shown expanded by default and can be toggled open/closed by clicking
 - Clicking a file in the tree scrolls the right panel smoothly to that file's diff
-- The right panel renders side-by-side diffs using the diff2html library loaded from CDN
-- Syntax highlighting is enabled via diff2html's built-in highlight.js integration
+- The right panel renders side-by-side diffs with syntax highlighting using diff2html from CDN
 - All error cases show a human-readable message: missing token, repo not found, ref not found, rate limit, timeout
 - A loading indicator is shown while the API call is in progress
 - The entire frontend is a single `index.html` file with no build step, no npm, vanilla JS only
 </summary>
 
 <objective>
-Build the single-page frontend for the commit diff viewer: an `index.html` that lets users enter a GitHub repo and two refs, then displays a collapsible file tree sidebar and a side-by-side diff view rendered by diff2html. This prompt assumes the `/api/compare` backend endpoint is already implemented (from prompt 1).
+Build the single-page frontend for the commit diff viewer: an `index.html` that lets users enter a GitHub repo and two refs, then displays a collapsible file tree sidebar and a side-by-side diff view rendered by diff2html. **Depends on prompt 1 (backend)** — this prompt assumes `src/pr_viewer/api/compare.py` exists with `GET /api/compare` returning `CompareResponse` JSON. If prompt 1 has not completed, this prompt will fail.
 </objective>
 
 <context>
@@ -42,8 +42,8 @@ Read these files before making changes:
   ```
 
 The frontend must use:
-- diff2html from CDN: `https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js`
-- diff2html CSS from CDN: `https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css`
+- diff2html from CDN (pin version): `https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/js/diff2html-ui.min.js`
+- diff2html CSS from CDN (pin version): `https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/css/diff2html.min.css`
 - No npm, no build step, no frameworks — vanilla JS only
 - The static file mount uses `html=True` so `GET /` serves `index.html` automatically
 
@@ -121,7 +121,11 @@ The FastAPI app mounts `/static` as a StaticFiles directory with `html=True`, me
    - Test that `GET /healthz` still returns 200 with `{"status": "ok"}` (confirms API routes still work)
    - Use `TestClient` (synchronous, matches existing test style)
 
-4. **Do NOT modify**:
+4. **Update CHANGELOG.md**: Add entry under `## Unreleased` → `### Added`:
+   - Single-page frontend with hierarchical file tree and side-by-side diff view
+   - diff2html integration for syntax-highlighted diffs
+
+5. **Do NOT modify**:
    - `src/pr_viewer/providers/base.py`
    - `src/pr_viewer/config.py`
    - `src/pr_viewer/__main__.py`
@@ -132,8 +136,8 @@ The FastAPI app mounts `/static` as a StaticFiles directory with `html=True`, me
 <constraints>
 - No npm, no build step — frontend is vanilla JS + CDN libraries only
 - No new Python dependencies
-- diff2html loaded from CDN: `https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js`
-- diff2html CSS from CDN: `https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css`
+- diff2html loaded from CDN (pinned): `https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/js/diff2html-ui.min.js`
+- diff2html CSS from CDN (pinned): `https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/css/diff2html.min.css`
 - File tree must remain responsive with 1000+ files — build the tree in a single pass, render lazily (don't re-render on every click; toggle CSS display instead)
 - GITHUB_TOKEN must never appear in the frontend code or HTML
 - `make precommit` must pass (ruff, mypy, pytest)
