@@ -1,8 +1,7 @@
-pr: true
-worktree: true
-autoMerge: true
+pr: false
+worktree: false
 validationPrompt: docs/dod.md
-
+autoRelease: true
 extraMounts:
   - src: ~/.cache/uv
     dst: /home/node/.cache/uv

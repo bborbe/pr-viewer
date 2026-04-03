@@ -1,7 +1,6 @@
 ---
-status: executing
+status: completed
 spec: [002-local-git-provider]
-summary: Created local git provider (local.py), added provider routing to compare.py, and created test_compare_local.py with mock_fs() context manager to patch filesystem checks so all 13 tests pass in CI where /workspace doesn't exist
 container: pr-viewer-005-fix-local-tests-ci
 dark-factory-version: v0.94.1-dirty
 created: "2026-04-03T17:34:04Z"

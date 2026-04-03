@@ -7,7 +7,6 @@ created: "2026-04-03T15:00:00Z"
 queued: "2026-04-03T16:17:02Z"
 started: "2026-04-03T16:17:03Z"
 completed: "2026-04-03T16:25:42Z"
-branch: dark-factory/local-git-provider
 ---
 
 <summary>
