@@ -173,3 +173,23 @@ def test_github_other_error(monkeypatch: pytest.MonkeyPatch) -> None:
     response = client.get("/api/compare?repo=owner/repo&base=main&head=feature")
     assert response.status_code == 502
     assert "500" in response.json()["detail"]
+
+
+@respx.mock
+def test_provider_github_param_same_as_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = make_client(monkeypatch)
+    respx.get(GITHUB_COMPARE_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "truncated": False,
+                "files": [
+                    {"filename": "a.py", "status": "added", "patch": "@@ +1 @@\n+hello"},
+                ],
+            },
+        )
+    )
+
+    response = client.get("/api/compare?provider=github&repo=owner/repo&base=main&head=feature")
+    assert response.status_code == 200
+    assert response.json()["total_files"] == 1

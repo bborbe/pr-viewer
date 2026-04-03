@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- feat: Local git provider for compare endpoint — runs git diff via subprocess
+- feat: Provider routing for /api/compare — new provider= query parameter (github or local)
+
 ## v0.1.0
 
 ### Added
