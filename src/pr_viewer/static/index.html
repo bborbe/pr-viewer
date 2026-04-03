@@ -4,28 +4,689 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PR Viewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/css/diff2html.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-            background: #1e1e2e;
-            color: #cdd6f4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top bar */
+        #topbar {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        #topbar h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f0f6fc;
+            white-space: nowrap;
+        }
+
+        #compare-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        #compare-form input {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            padding: 5px 10px;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        #compare-form input:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88,166,255,0.2);
+        }
+
+        #repo-input { width: 180px; }
+        #base-input { width: 130px; }
+        #head-input { width: 130px; }
+
+        #compare-btn {
+            background: #238636;
+            border: 1px solid #2ea043;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 5px 14px;
+            white-space: nowrap;
+        }
+
+        #compare-btn:hover:not(:disabled) { background: #2ea043; }
+
+        #compare-btn:disabled {
+            background: #21262d;
+            border-color: #30363d;
+            color: #8b949e;
+            cursor: not-allowed;
+        }
+
+        /* Banners */
+        .banner {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .banner.visible { display: flex; }
+
+        .banner-error {
+            background: #3d1f1f;
+            border-bottom: 1px solid #7a2a2a;
+            color: #f85149;
+        }
+
+        .banner-warning {
+            background: #2d2a1c;
+            border-bottom: 1px solid #6e5c1e;
+            color: #e3b341;
+        }
+
+        .banner-dismiss {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            opacity: 0.7;
+            padding: 0 4px;
+        }
+
+        .banner-dismiss:hover { opacity: 1; }
+
+        /* Main layout */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 280px;
+            min-width: 200px;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        #sidebar-header {
+            padding: 10px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #30363d;
+            flex-shrink: 0;
+        }
+
+        #file-tree {
+            overflow-y: auto;
+            flex: 1;
+            padding: 4px 0;
+        }
+
+        .tree-empty {
+            padding: 16px 12px;
+            color: #8b949e;
+            font-size: 0.875rem;
+        }
+
+        /* Tree nodes */
+        .tree-folder {
+            user-select: none;
+        }
+
+        .tree-folder-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            color: #c9d1d9;
+            border-radius: 4px;
+            margin: 1px 4px;
+        }
+
+        .tree-folder-label:hover { background: #21262d; }
+
+        .tree-folder-toggle {
+            font-size: 0.625rem;
+            color: #8b949e;
+            width: 12px;
+            flex-shrink: 0;
+        }
+
+        .tree-folder-name { font-weight: 500; }
+
+        .tree-children { padding-left: 16px; }
+        .tree-children.collapsed { display: none; }
+
+        .tree-file {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            color: #c9d1d9;
+            border-radius: 4px;
+            margin: 1px 4px;
+        }
+
+        .tree-file:hover { background: #21262d; }
+
+        .tree-file-icon {
+            font-size: 0.75rem;
+            font-weight: 700;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .icon-added    { color: #3fb950; }
+        .icon-modified { color: #d29922; }
+        .icon-deleted  { color: #f85149; }
+        .icon-renamed  { color: #8b949e; }
+
+        .tree-file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Right panel */
+        #diff-panel {
+            flex: 1;
+            overflow-y: auto;
+            background: #0d1117;
+            padding: 0;
+        }
+
+        #diff-content {
+            padding: 16px;
+        }
+
+        .diff-panel-empty {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
+            color: #8b949e;
+            font-size: 0.9375rem;
         }
-        .placeholder {
-            text-align: center;
+
+        /* File diff sections */
+        .file-section {
+            margin-bottom: 24px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
         }
-        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        p { color: #6c7086; }
+
+        .file-section-header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-section-header h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #c9d1d9;
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            overflow-wrap: anywhere;
+        }
+
+        .file-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 1px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .badge-added    { background: #1f4a1f; color: #3fb950; border: 1px solid #2f6f2f; }
+        .badge-modified { background: #3d2f08; color: #d29922; border: 1px solid #5a4510; }
+        .badge-deleted  { background: #3d1010; color: #f85149; border: 1px solid #6b1a1a; }
+        .badge-renamed  { background: #1c2330; color: #8b949e; border: 1px solid #30363d; }
+
+        .file-section-body {
+            overflow-x: auto;
+            background: #0d1117;
+        }
+
+        .binary-notice {
+            padding: 12px 14px;
+            color: #8b949e;
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+
+        /* diff2html overrides for dark theme */
+        .d2h-wrapper { background: #0d1117; }
+        .d2h-file-header { display: none !important; }
+        .d2h-diff-table { font-size: 0.8rem; }
+        .d2h-code-side-linenumber { background: #161b22 !important; color: #484f58 !important; border-color: #30363d !important; }
+        .d2h-code-line-ctn { background: #0d1117; }
+        .d2h-del { background-color: #3d1a1a !important; }
+        .d2h-ins { background-color: #1a3d1a !important; }
+        .d2h-del .d2h-code-line-ctn ins,
+        .d2h-del ins { background-color: #7a2020 !important; }
+        .d2h-ins .d2h-code-line-ctn del,
+        .d2h-ins del { background-color: #207a20 !important; }
+        .d2h-info { background-color: #1c2a3a !important; color: #58a6ff !important; }
+        .d2h-code-line { color: #c9d1d9; }
+        .d2h-file-diff { border-color: #30363d; }
+        .d2h-diff-tbody tr td { border-color: #30363d !important; }
+        .d2h-emptyplaceholder { background-color: #1a1f29 !important; }
+
+        /* Spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
     </style>
 </head>
 <body>
-    <div class="placeholder">
-        <h1>PR Viewer</h1>
-        <p>Under construction</p>
+
+<div id="topbar">
+    <h1>PR Viewer</h1>
+    <form id="compare-form" onsubmit="return false;">
+        <input id="repo-input" type="text" placeholder="owner/repo" autocomplete="off" spellcheck="false">
+        <input id="base-input" type="text" placeholder="base ref" autocomplete="off" spellcheck="false">
+        <input id="head-input" type="text" placeholder="head ref" autocomplete="off" spellcheck="false">
+        <button id="compare-btn" type="button">Compare</button>
+    </form>
+</div>
+
+<div id="error-banner" class="banner banner-error" role="alert">
+    <span id="error-text"></span>
+    <button class="banner-dismiss" onclick="hideBanner('error-banner')" title="Dismiss">&times;</button>
+</div>
+
+<div id="warn-banner" class="banner banner-warning" role="alert">
+    <span id="warn-text"></span>
+    <button class="banner-dismiss" onclick="hideBanner('warn-banner')" title="Dismiss">&times;</button>
+</div>
+
+<div id="main">
+    <div id="sidebar">
+        <div id="sidebar-header">Files</div>
+        <div id="file-tree">
+            <div class="tree-empty">No files loaded</div>
+        </div>
     </div>
+    <div id="diff-panel">
+        <div id="diff-content">
+            <div class="diff-panel-empty">Enter a repo and refs above, then click Compare.</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/diff2html@3.4.48/bundles/js/diff2html-ui.min.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    // ── Utilities ────────────────────────────────────────────────────────────
+
+    function fileId(path) {
+        return 'file-' + path.replace(/[\/\. ]/g, '-');
+    }
+
+    function hideBanner(id) {
+        document.getElementById(id).classList.remove('visible');
+    }
+
+    function showError(msg) {
+        document.getElementById('error-text').textContent = msg;
+        document.getElementById('error-banner').classList.add('visible');
+    }
+
+    function showWarning(msg) {
+        document.getElementById('warn-text').textContent = msg;
+        document.getElementById('warn-banner').classList.add('visible');
+    }
+
+    function clearBanners() {
+        hideBanner('error-banner');
+        hideBanner('warn-banner');
+    }
+
+    function statusIcon(status) {
+        switch (status) {
+            case 'added':    return { text: '＋', cls: 'icon-added' };
+            case 'deleted':  return { text: '−',  cls: 'icon-deleted' };
+            case 'renamed':  return { text: '→',  cls: 'icon-renamed' };
+            default:         return { text: '✎',  cls: 'icon-modified' };
+        }
+    }
+
+    function badgeClass(status) {
+        switch (status) {
+            case 'added':   return 'badge-added';
+            case 'deleted': return 'badge-deleted';
+            case 'renamed': return 'badge-renamed';
+            default:        return 'badge-modified';
+        }
+    }
+
+    // ── File Tree ─────────────────────────────────────────────────────────────
+
+    /**
+     * Build a nested tree structure from a flat list of file objects.
+     * Each file: { path, status }
+     * Returns: { folders: { name -> subtree }, files: [{ name, path, status }] }
+     */
+    function buildTree(files) {
+        var root = { folders: {}, files: [] };
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            var parts = f.path.split('/');
+            var node = root;
+            for (var j = 0; j < parts.length - 1; j++) {
+                var seg = parts[j];
+                if (!node.folders[seg]) {
+                    node.folders[seg] = { folders: {}, files: [] };
+                }
+                node = node.folders[seg];
+            }
+            node.files.push({ name: parts[parts.length - 1], path: f.path, status: f.status });
+        }
+        return root;
+    }
+
+    /**
+     * Render a tree node into a DocumentFragment.
+     */
+    function renderTreeNode(node, depth) {
+        var frag = document.createDocumentFragment();
+
+        // Folders first (sorted)
+        var folderNames = Object.keys(node.folders).sort();
+        for (var i = 0; i < folderNames.length; i++) {
+            var name = folderNames[i];
+            var child = node.folders[name];
+
+            var folderDiv = document.createElement('div');
+            folderDiv.className = 'tree-folder';
+
+            var labelDiv = document.createElement('div');
+            labelDiv.className = 'tree-folder-label';
+            labelDiv.setAttribute('role', 'button');
+            labelDiv.setAttribute('aria-expanded', 'true');
+
+            var toggleSpan = document.createElement('span');
+            toggleSpan.className = 'tree-folder-toggle';
+            toggleSpan.textContent = '▼';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.className = 'tree-folder-name';
+            nameSpan.textContent = name;
+
+            labelDiv.appendChild(toggleSpan);
+            labelDiv.appendChild(nameSpan);
+
+            var childrenDiv = document.createElement('div');
+            childrenDiv.className = 'tree-children';
+
+            // Attach toggle handler (closure captures labelDiv, toggleSpan, childrenDiv)
+            (function (ld, ts, cd) {
+                ld.addEventListener('click', function () {
+                    var collapsed = cd.classList.toggle('collapsed');
+                    ts.textContent = collapsed ? '▶' : '▼';
+                    ld.setAttribute('aria-expanded', String(!collapsed));
+                });
+            })(labelDiv, toggleSpan, childrenDiv);
+
+            childrenDiv.appendChild(renderTreeNode(child, depth + 1));
+
+            folderDiv.appendChild(labelDiv);
+            folderDiv.appendChild(childrenDiv);
+            frag.appendChild(folderDiv);
+        }
+
+        // Files (sorted)
+        var sortedFiles = node.files.slice().sort(function (a, b) {
+            return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+        });
+        for (var k = 0; k < sortedFiles.length; k++) {
+            var file = sortedFiles[k];
+            var icon = statusIcon(file.status);
+
+            var fileDiv = document.createElement('div');
+            fileDiv.className = 'tree-file';
+            fileDiv.setAttribute('role', 'button');
+            fileDiv.setAttribute('title', file.path);
+
+            var iconSpan = document.createElement('span');
+            iconSpan.className = 'tree-file-icon ' + icon.cls;
+            iconSpan.textContent = icon.text;
+
+            var nameSpan2 = document.createElement('span');
+            nameSpan2.className = 'tree-file-name';
+            nameSpan2.textContent = file.name;
+
+            fileDiv.appendChild(iconSpan);
+            fileDiv.appendChild(nameSpan2);
+
+            (function (path) {
+                fileDiv.addEventListener('click', function () {
+                    var target = document.getElementById(fileId(path));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            })(file.path);
+
+            frag.appendChild(fileDiv);
+        }
+
+        return frag;
+    }
+
+    function renderTree(files) {
+        var tree = buildTree(files);
+        var container = document.getElementById('file-tree');
+        container.innerHTML = '';
+        if (files.length === 0) {
+            container.innerHTML = '<div class="tree-empty">No files changed</div>';
+            return;
+        }
+        container.appendChild(renderTreeNode(tree, 0));
+    }
+
+    // ── Diff View ─────────────────────────────────────────────────────────────
+
+    function renderDiffs(files) {
+        var content = document.getElementById('diff-content');
+        content.innerHTML = '';
+
+        if (files.length === 0) {
+            content.innerHTML = '<div class="diff-panel-empty">No files changed.</div>';
+            return;
+        }
+
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            var sectionId = fileId(f.path);
+
+            var section = document.createElement('div');
+            section.className = 'file-section';
+
+            // Header
+            var header = document.createElement('div');
+            header.className = 'file-section-header';
+            header.id = sectionId;
+
+            var badge = document.createElement('span');
+            badge.className = 'file-badge ' + badgeClass(f.status);
+            badge.textContent = f.status.charAt(0).toUpperCase() + f.status.slice(1);
+
+            var h3 = document.createElement('h3');
+            h3.textContent = f.path;
+
+            header.appendChild(badge);
+            header.appendChild(h3);
+
+            // Body
+            var body = document.createElement('div');
+            body.className = 'file-section-body';
+
+            if (!f.diff) {
+                var notice = document.createElement('div');
+                notice.className = 'binary-notice';
+                notice.textContent = 'Binary file — no diff available';
+                body.appendChild(notice);
+            } else {
+                var diffContainer = document.createElement('div');
+                body.appendChild(diffContainer);
+
+                // diff2html needs the diff wrapped with a proper header
+                var diffString = 'diff --git a/' + f.path + ' b/' + f.path + '\n' + f.diff;
+
+                try {
+                    var diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
+                        drawFileList: false,
+                        matching: 'lines',
+                        outputFormat: 'side-by-side',
+                        highlight: true,
+                    });
+                    diff2htmlUi.draw();
+                    diff2htmlUi.highlightCode();
+                } catch (e) {
+                    diffContainer.textContent = f.diff;
+                    diffContainer.style.cssText = 'padding:12px;font-family:monospace;font-size:0.8rem;white-space:pre-wrap;color:#c9d1d9;';
+                }
+            }
+
+            section.appendChild(header);
+            section.appendChild(body);
+            content.appendChild(section);
+        }
+    }
+
+    // ── API Call ──────────────────────────────────────────────────────────────
+
+    function setLoading(loading) {
+        var btn = document.getElementById('compare-btn');
+        if (loading) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Loading…';
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Compare';
+        }
+    }
+
+    async function doCompare() {
+        var repo = document.getElementById('repo-input').value.trim();
+        var base = document.getElementById('base-input').value.trim();
+        var head = document.getElementById('head-input').value.trim();
+
+        if (!repo || !base || !head) {
+            showError('Please fill in all three fields.');
+            return;
+        }
+
+        clearBanners();
+        setLoading(true);
+
+        // Clear previous results immediately
+        document.getElementById('file-tree').innerHTML = '<div class="tree-empty">Loading…</div>';
+        document.getElementById('diff-content').innerHTML = '<div class="diff-panel-empty">Loading…</div>';
+
+        try {
+            var url = '/api/compare?repo=' + encodeURIComponent(repo)
+                    + '&base=' + encodeURIComponent(base)
+                    + '&head=' + encodeURIComponent(head);
+
+            var resp = await fetch(url);
+
+            if (!resp.ok) {
+                var errData;
+                try { errData = await resp.json(); } catch (_) { errData = {}; }
+                var detail = (errData && errData.detail) ? errData.detail : 'Unexpected error';
+                showError(detail);
+                document.getElementById('file-tree').innerHTML = '<div class="tree-empty">No files loaded</div>';
+                document.getElementById('diff-content').innerHTML = '<div class="diff-panel-empty">Enter a repo and refs above, then click Compare.</div>';
+                return;
+            }
+
+            var data = await resp.json();
+
+            if (data.truncated) {
+                showWarning('Showing first ' + data.files.length + ' of ' + data.total_files + ' files (GitHub API limit)');
+            }
+
+            renderTree(data.files);
+            renderDiffs(data.files);
+
+        } catch (err) {
+            showError(err.message || 'Network error');
+            document.getElementById('file-tree').innerHTML = '<div class="tree-empty">No files loaded</div>';
+            document.getElementById('diff-content').innerHTML = '<div class="diff-panel-empty">Enter a repo and refs above, then click Compare.</div>';
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // ── Wiring ────────────────────────────────────────────────────────────────
+
+    document.getElementById('compare-btn').addEventListener('click', doCompare);
+
+    ['repo-input', 'base-input', 'head-input'].forEach(function (id) {
+        document.getElementById(id).addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') doCompare();
+        });
+    });
+
+})();
+</script>
 </body>
 </html>

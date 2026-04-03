@@ -13,3 +13,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provider interface for pluggable git server backends
 - feat: `GET /api/compare` endpoint for GitHub commit/branch/tag comparison with input validation and error mapping
 - feat: `GitHubCompareClient` with structured error handling (401/403/404/422/timeout → meaningful HTTP responses)
+- feat: Single-page frontend with collapsible hierarchical file tree sidebar and side-by-side diff view
+- feat: diff2html integration (v3.4.48 from CDN) for syntax-highlighted diffs with dark theme overrides

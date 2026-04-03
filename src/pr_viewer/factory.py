@@ -13,14 +13,14 @@ def create_app() -> FastAPI:
     app = FastAPI(title="PR Viewer")
     app.include_router(compare_router)
 
-    static_dir = Path(__file__).parent / "static"
-    if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir), html=True), name="static")
-
     app.state.config = config
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.exists():
+        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
 
     return app

@@ -1,11 +1,12 @@
 ---
-status: prompted
+status: verifying
 tags:
     - dark-factory
     - spec
 approved: "2026-04-03T11:51:21Z"
 generating: "2026-04-03T11:54:37Z"
 prompted: "2026-04-03T11:57:06Z"
+verifying: "2026-04-03T12:31:41Z"
 branch: dark-factory/commit-diff-viewer
 ---
 Tags: [[Dark Factory Guide]] [[Dark Factory - Write Spec]]
