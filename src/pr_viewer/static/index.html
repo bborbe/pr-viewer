@@ -428,6 +428,7 @@
         <select id="provider-select">
             <option value="github">GitHub</option>
             <option value="local">Local</option>
+            <option value="bitbucket">Bitbucket Server</option>
         </select>
         <label id="repo-label" for="repo-input">Repo (owner/repo)</label>
         <input id="repo-input" type="text" placeholder="owner/repo" autocomplete="off" spellcheck="false">
@@ -826,6 +827,9 @@
         if (provider === 'local') {
             label.textContent = 'Repo path';
             input.placeholder = '/Users/you/your-repo';
+        } else if (provider === 'bitbucket') {
+            label.textContent = 'project/repo';
+            input.placeholder = 'PROJ/my-repo';
         } else {
             label.textContent = 'Repo (owner/repo)';
             input.placeholder = 'owner/repo';

@@ -27,6 +27,14 @@ def test_root_contains_local_option() -> None:
     assert "Local" in response.text
 
 
+def test_root_contains_bitbucket_option() -> None:
+    app = create_app()
+    client = TestClient(app)
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Bitbucket Server" in response.text
+
+
 def test_healthz_still_works() -> None:
     app = create_app()
     client = TestClient(app)

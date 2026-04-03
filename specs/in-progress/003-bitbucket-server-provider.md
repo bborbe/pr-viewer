@@ -1,7 +1,8 @@
 ---
-status: approved
+status: verifying
 approved: "2026-04-03T16:17:22Z"
 generating: "2026-04-03T16:17:23Z"
+verifying: "2026-04-03T19:23:46Z"
 branch: dark-factory/bitbucket-server-provider
 ---
 Tags: [[Dark Factory Guide]] [[Dark Factory - Write Spec]]
