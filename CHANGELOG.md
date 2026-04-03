@@ -16,11 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GET /api/compare` endpoint for GitHub commit/branch/tag comparison with input validation and error mapping
 - `GitHubCompareClient` with structured error handling (401/403/404/422/timeout → meaningful HTTP responses)
 - Single-page frontend with collapsible hierarchical file tree sidebar
-- Single-file diff view (Bitbucket-style: one file at a time, not stacked)
+- Single-file diff view (one file at a time, not stacked)
 - Side-by-side diff for modified files, line-by-line for added/deleted files
 - diff2html integration (v3.4.48 from CDN) with dark theme and compact row layout
 - URL sync for repo/base/head/file params (shareable URLs, auto-load on open)
 - Inline word-level highlights with readable dark red/green colors
-- Long line wrapping (no horizontal scrollbars, like Bitbucket)
+- Long line wrapping (no horizontal scrollbars)
 - File status badges and icons: Added, Modified, Deleted, Renamed
 - Auto-inject `GITHUB_TOKEN` via `gh auth token` in Makefile

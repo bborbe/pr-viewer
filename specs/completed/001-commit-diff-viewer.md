@@ -1,5 +1,5 @@
 ---
-status: verifying
+status: completed
 tags:
     - dark-factory
     - spec
@@ -7,6 +7,7 @@ approved: "2026-04-03T11:51:21Z"
 generating: "2026-04-03T11:54:37Z"
 prompted: "2026-04-03T11:57:06Z"
 verifying: "2026-04-03T12:31:41Z"
+completed: "2026-04-03T13:17:01Z"
 branch: dark-factory/commit-diff-viewer
 ---
 Tags: [[Dark Factory Guide]] [[Dark Factory - Write Spec]]
@@ -23,17 +24,17 @@ Tags: [[Dark Factory Guide]] [[Dark Factory - Write Spec]]
 
 ## Problem
 
-Reviewing large diffs on GitHub is painful. GitHub lacks a hierarchical file tree in its diff view, making it hard to navigate PRs with many changed files. Bitbucket Server has a superior file tree with nested folders and change type icons, but not everyone uses Bitbucket. As AI agents produce more PRs, humans need a fast way to review diffs regardless of git platform.
+Reviewing large diffs on GitHub is painful. GitHub lacks a hierarchical file tree in its diff view, making it hard to navigate PRs with many changed files. As AI agents produce more PRs, humans need a fast way to review diffs with a proper file tree and side-by-side view, regardless of git platform.
 
 ## Goal
 
-After this work, the system has a local web app that accepts a GitHub repo and two git refs, fetches the comparison via GitHub API, and displays the diff with a Bitbucket Server-quality file tree sidebar and side-by-side diff view. The app runs locally with `make run` and opens at http://127.0.0.1:8000.
+After this work, the system has a local web app that accepts a GitHub repo and two git refs, fetches the comparison via GitHub API, and displays the diff with a hierarchical file tree sidebar and side-by-side diff view. The app runs locally with `make run` and opens at http://127.0.0.1:8001.
 
 ## Non-goals
 
 - No PR listing or dashboard
 - No approve/reject/comment actions
-- No Bitbucket Server provider (GitHub only for v0.1)
+- No additional providers (GitHub only for v0.1)
 - No authentication UI (token via env var only)
 - No inline comments or comment threads
 - No persistence or caching

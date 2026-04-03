@@ -1,6 +1,6 @@
 # PR Viewer
 
-Universal pull request viewer with Bitbucket Server-quality UX for any git server.
+Universal pull request viewer with professional UX for any git server.
 
 ## Status
 
@@ -11,7 +11,7 @@ Under Development
 - Hierarchical file tree sidebar with add/modify/delete icons
 - Side-by-side diff view with syntax highlighting
 - Approve, reject, and comment on PRs
-- Multi-provider: GitHub, Bitbucket Server (GitLab, Gitea planned)
+- Multi-provider: GitHub (Bitbucket Server, GitLab, Gitea planned)
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ With auto-reload:
 make watch
 ```
 
-Then open http://127.0.0.1:8000
+Then open http://127.0.0.1:8001
 
 ## Configuration
 
@@ -42,10 +42,11 @@ servers:
     url: https://api.github.com
     token_env: GITHUB_TOKEN
 
-  - name: bitbucket-work
-    type: bitbucket-server
-    url: https://bitbucket.example.com
-    token_env: BITBUCKET_TOKEN
+  # Additional providers planned:
+  # - name: work
+  #   type: bitbucket-server
+  #   url: https://bitbucket.example.com
+  #   token_env: BITBUCKET_TOKEN
 ```
 
 ## Development

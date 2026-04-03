@@ -2,11 +2,11 @@
 
 ## Overview
 
-PR Viewer is a local web app that provides a unified, Bitbucket Server-quality interface for reviewing pull requests across multiple git servers.
+PR Viewer is a local web app that provides a unified, professional interface for reviewing pull requests across multiple git servers.
 
 ## Motivation
 
-AI agents (dark-factory, Claude Code) produce high volumes of PRs. The human reviewer becomes the bottleneck. GitHub's PR UI is significantly worse than Bitbucket Server's — no hierarchical file tree, inferior diff navigation. PR Viewer provides the best review experience regardless of git platform.
+AI agents (dark-factory, Claude Code) produce high volumes of PRs. The human reviewer becomes the bottleneck. GitHub's PR UI lacks a hierarchical file tree and has inferior diff navigation. PR Viewer provides the best review experience regardless of git platform.
 
 ## System Diagram
 
@@ -81,7 +81,7 @@ class Provider(Protocol):
 
 Providers:
 - `github.py` — GitHub REST API v3
-- `bitbucket.py` — Bitbucket Server REST API
+- `bitbucket.py` — Bitbucket Server REST API (planned)
 
 ### Configuration
 
@@ -95,12 +95,11 @@ servers:
       - bborbe/trading
       - bborbe/pr-reviewer
 
-  - name: bitbucket-work
-    type: bitbucket-server
-    url: https://bitbucket.seibert.tools
-    token_env: BITBUCKET_TOKEN
-    projects:
-      - OC
+  # Additional providers planned:
+  # - name: work
+  #   type: bitbucket-server
+  #   url: https://bitbucket.example.com
+  #   token_env: BITBUCKET_TOKEN
 ```
 
 Tokens stored in env vars, referenced by name in config.
@@ -130,7 +129,7 @@ Git APIs return flat file lists. We build the tree client-side:
 
 Options:
 - **diff2html** — JS library, renders unified/side-by-side diffs from unified diff format
-- Both GitHub and Bitbucket APIs return unified diff format
+- Git server APIs return unified diff format
 - diff2html handles syntax highlighting via highlight.js
 
 ## Phases
@@ -143,7 +142,7 @@ Options:
 - Approve/reject/comment
 
 ### Phase 2: Multi-Provider
-- Bitbucket Server provider
+- Additional providers (Bitbucket Server, etc.)
 - Provider selection in UI
 - Dashboard across all servers
 

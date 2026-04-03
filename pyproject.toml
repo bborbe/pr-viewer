@@ -1,7 +1,7 @@
 [project]
 name = "pr-viewer"
 dynamic = ["version"]
-description = "Universal PR viewer with Bitbucket Server-quality UX for any git server"
+description = "Universal PR viewer with professional UX for any git server"
 requires-python = ">=3.12"
 license = { text = "BSD-2-Clause" }
 readme = "README.md"
