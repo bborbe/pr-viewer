@@ -28,8 +28,8 @@ precommit: sync format test check
 
 .PHONY: run
 run: sync
-	uv run pr-viewer
+	GITHUB_TOKEN=$$(gh auth token) uv run pr-viewer
 
 .PHONY: watch
 watch: sync
-	uv run uvicorn pr_viewer.__main__:app --reload --host 127.0.0.1 --port 8000
+	GITHUB_TOKEN=$$(gh auth token) uv run uvicorn pr_viewer.__main__:app --reload --host 127.0.0.1 --port 8001

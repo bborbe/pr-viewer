@@ -208,6 +208,7 @@
         }
 
         .tree-file:hover { background: #21262d; }
+        .tree-file-selected { background: #1f2937 !important; border-left: 2px solid #58a6ff; }
 
         .tree-file-icon {
             font-size: 0.75rem;
@@ -514,13 +515,11 @@
 
             fileDiv.appendChild(iconSpan);
             fileDiv.appendChild(nameSpan2);
+            fileDiv.setAttribute('data-path', file.path);
 
             (function (path) {
                 fileDiv.addEventListener('click', function () {
-                    var target = document.getElementById(fileId(path));
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
+                    showFile(path);
                 });
             })(file.path);
 
@@ -543,72 +542,106 @@
 
     // ── Diff View ─────────────────────────────────────────────────────────────
 
-    function renderDiffs(files) {
+    var currentFiles = [];  // stored after API call
+    var selectedFilePath = null;
+    var pendingFile = '';  // file to select from URL param
+
+    function showFile(path) {
+        selectedFilePath = path;
+        // Update URL with selected file
+        var repo = document.getElementById('repo-input').value.trim();
+        var base = document.getElementById('base-input').value.trim();
+        var head = document.getElementById('head-input').value.trim();
+        updateURL(repo, base, head, path);
         var content = document.getElementById('diff-content');
         content.innerHTML = '';
+
+        // Find the file
+        var f = null;
+        for (var i = 0; i < currentFiles.length; i++) {
+            if (currentFiles[i].path === path) { f = currentFiles[i]; break; }
+        }
+        if (!f) return;
+
+        // Header bar (like Bitbucket: path + status badge)
+        var header = document.createElement('div');
+        header.className = 'file-section-header';
+        header.style.position = 'sticky';
+        header.style.top = '0';
+        header.style.zIndex = '10';
+
+        var badge = document.createElement('span');
+        badge.className = 'file-badge ' + badgeClass(f.status);
+        badge.textContent = f.status.charAt(0).toUpperCase() + f.status.slice(1);
+
+        var h3 = document.createElement('h3');
+        h3.textContent = f.path;
+
+        header.appendChild(badge);
+        header.appendChild(h3);
+        content.appendChild(header);
+
+        // Diff body
+        var body = document.createElement('div');
+        body.className = 'file-section-body';
+
+        if (!f.diff) {
+            var notice = document.createElement('div');
+            notice.className = 'binary-notice';
+            notice.textContent = 'Binary file — no diff available';
+            body.appendChild(notice);
+        } else {
+            var diffContainer = document.createElement('div');
+            body.appendChild(diffContainer);
+
+            var diffString = 'diff --git a/' + f.path + ' b/' + f.path + '\n' + f.diff;
+
+            try {
+                var diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
+                    drawFileList: false,
+                    matching: 'lines',
+                    outputFormat: 'side-by-side',
+                    highlight: true,
+                });
+                diff2htmlUi.draw();
+                diff2htmlUi.highlightCode();
+            } catch (e) {
+                diffContainer.textContent = f.diff;
+                diffContainer.style.cssText = 'padding:12px;font-family:monospace;font-size:0.8rem;white-space:pre-wrap;color:#c9d1d9;';
+            }
+        }
+
+        content.appendChild(body);
+
+        // Highlight selected file in tree
+        document.querySelectorAll('.tree-file').forEach(function (el) {
+            el.classList.remove('tree-file-selected');
+        });
+        var treeEl = document.querySelector('.tree-file[data-path="' + CSS.escape(path) + '"]');
+        if (treeEl) treeEl.classList.add('tree-file-selected');
+
+        // Scroll diff panel to top
+        document.getElementById('diff-panel').scrollTop = 0;
+    }
+
+    function renderDiffs(files) {
+        currentFiles = files;
+        var content = document.getElementById('diff-content');
 
         if (files.length === 0) {
             content.innerHTML = '<div class="diff-panel-empty">No files changed.</div>';
             return;
         }
 
-        for (var i = 0; i < files.length; i++) {
-            var f = files[i];
-            var sectionId = fileId(f.path);
-
-            var section = document.createElement('div');
-            section.className = 'file-section';
-
-            // Header
-            var header = document.createElement('div');
-            header.className = 'file-section-header';
-            header.id = sectionId;
-
-            var badge = document.createElement('span');
-            badge.className = 'file-badge ' + badgeClass(f.status);
-            badge.textContent = f.status.charAt(0).toUpperCase() + f.status.slice(1);
-
-            var h3 = document.createElement('h3');
-            h3.textContent = f.path;
-
-            header.appendChild(badge);
-            header.appendChild(h3);
-
-            // Body
-            var body = document.createElement('div');
-            body.className = 'file-section-body';
-
-            if (!f.diff) {
-                var notice = document.createElement('div');
-                notice.className = 'binary-notice';
-                notice.textContent = 'Binary file — no diff available';
-                body.appendChild(notice);
-            } else {
-                var diffContainer = document.createElement('div');
-                body.appendChild(diffContainer);
-
-                // diff2html needs the diff wrapped with a proper header
-                var diffString = 'diff --git a/' + f.path + ' b/' + f.path + '\n' + f.diff;
-
-                try {
-                    var diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
-                        drawFileList: false,
-                        matching: 'lines',
-                        outputFormat: 'side-by-side',
-                        highlight: true,
-                    });
-                    diff2htmlUi.draw();
-                    diff2htmlUi.highlightCode();
-                } catch (e) {
-                    diffContainer.textContent = f.diff;
-                    diffContainer.style.cssText = 'padding:12px;font-family:monospace;font-size:0.8rem;white-space:pre-wrap;color:#c9d1d9;';
-                }
+        // Select file from URL param, or first file
+        var selectPath = files[0].path;
+        if (pendingFile) {
+            for (var j = 0; j < files.length; j++) {
+                if (files[j].path === pendingFile) { selectPath = pendingFile; break; }
             }
-
-            section.appendChild(header);
-            section.appendChild(body);
-            content.appendChild(section);
+            pendingFile = '';
         }
+        showFile(selectPath);
     }
 
     // ── API Call ──────────────────────────────────────────────────────────────
@@ -634,6 +667,7 @@
             return;
         }
 
+        updateURL(repo, base, head, null);
         clearBanners();
         setLoading(true);
 
@@ -676,6 +710,30 @@
         }
     }
 
+    // ── URL Sync ─────────────────────────────────────────────────────────────
+
+    function updateURL(repo, base, head, file) {
+        var params = new URLSearchParams();
+        if (repo) params.set('repo', repo);
+        if (base) params.set('base', base);
+        if (head) params.set('head', head);
+        if (file) params.set('file', file);
+        var newURL = params.toString() ? '?' + params.toString() : window.location.pathname;
+        window.history.replaceState({}, '', newURL);
+    }
+
+    function loadFromURL() {
+        var params = new URLSearchParams(window.location.search);
+        var repo = params.get('repo') || '';
+        var base = params.get('base') || '';
+        var head = params.get('head') || '';
+        pendingFile = params.get('file') || '';
+        if (repo) document.getElementById('repo-input').value = repo;
+        if (base) document.getElementById('base-input').value = base;
+        if (head) document.getElementById('head-input').value = head;
+        if (repo && base && head) doCompare();
+    }
+
     // ── Wiring ────────────────────────────────────────────────────────────────
 
     document.getElementById('compare-btn').addEventListener('click', doCompare);
@@ -685,6 +743,8 @@
             if (e.key === 'Enter') doCompare();
         });
     });
+
+    loadFromURL();
 
 })();
 </script>
