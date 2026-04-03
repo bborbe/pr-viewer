@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v0.2.0
 
 - feat: Local git provider for compare endpoint — runs git diff via subprocess
 - feat: Provider routing for /api/compare — new provider= query parameter (github or local)
 - fix: Local provider tests now pass in CI where /workspace doesn't exist
+- feat: Frontend provider selector — GitHub/Local dropdown with dynamic repo label and shareable URLs
 
 ## v0.1.0
 

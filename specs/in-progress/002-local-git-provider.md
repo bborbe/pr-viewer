@@ -1,8 +1,9 @@
 ---
-status: prompted
+status: verifying
 approved: "2026-04-03T14:58:49Z"
 generating: "2026-04-03T14:58:54Z"
 prompted: "2026-04-03T15:01:21Z"
+verifying: "2026-04-03T18:15:14Z"
 branch: dark-factory/local-git-provider
 ---
 Tags: [[Dark Factory Guide]] [[Dark Factory - Write Spec]]

@@ -11,6 +11,22 @@ def test_root_serves_index_html() -> None:
     assert "PR Viewer" in response.text
 
 
+def test_root_contains_provider_select() -> None:
+    app = create_app()
+    client = TestClient(app)
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "provider-select" in response.text
+
+
+def test_root_contains_local_option() -> None:
+    app = create_app()
+    client = TestClient(app)
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Local" in response.text
+
+
 def test_healthz_still_works() -> None:
     app = create_app()
     client = TestClient(app)
