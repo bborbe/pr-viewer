@@ -237,7 +237,7 @@
         }
 
         #diff-content {
-            padding: 16px;
+            padding: 0;
         }
 
         .diff-panel-empty {
@@ -290,6 +290,7 @@
 
         .file-section-body {
             overflow-x: auto;
+            overflow-y: hidden;
             background: #0d1117;
         }
 
@@ -303,20 +304,84 @@
         /* diff2html overrides for dark theme */
         .d2h-wrapper { background: #0d1117; }
         .d2h-file-header { display: none !important; }
-        .d2h-diff-table { font-size: 0.8rem; }
-        .d2h-code-side-linenumber { background: #161b22 !important; color: #484f58 !important; border-color: #30363d !important; }
-        .d2h-code-line-ctn { background: #0d1117; }
+        .d2h-file-wrapper { border: none !important; margin-bottom: 0 !important; }
+        .d2h-files-diff { width: 100%; display: flex; }
+        .d2h-file-side-diff { width: 50%; overflow-x: hidden; }
+        .d2h-diff-table { font-size: 0.8rem; width: 100% !important; }
+        .d2h-code-side-linenumber { background: #161b22 !important; color: #484f58 !important; border-color: #30363d !important; width: 50px !important; min-width: 50px !important; }
+        .d2h-code-side-line { white-space: pre; }
+        .d2h-code-line-ctn { background: #0d1117; white-space: pre-wrap; word-break: break-all; }
+        .d2h-code-line-prefix { background: #0d1117; }
         .d2h-del { background-color: #3d1a1a !important; }
+        .d2h-del .d2h-code-line-ctn { background-color: #3d1a1a !important; }
+        .d2h-del .d2h-code-line-prefix { background-color: #3d1a1a !important; }
         .d2h-ins { background-color: #1a3d1a !important; }
+        .d2h-ins .d2h-code-line-ctn { background-color: #1a3d1a !important; }
+        .d2h-ins .d2h-code-line-prefix { background-color: #1a3d1a !important; }
         .d2h-del .d2h-code-line-ctn ins,
-        .d2h-del ins { background-color: #7a2020 !important; }
+        .d2h-del ins { background-color: #6e3630 !important; color: #ffa198 !important; text-decoration: none !important; }
         .d2h-ins .d2h-code-line-ctn del,
-        .d2h-ins del { background-color: #207a20 !important; }
+        .d2h-ins del { background-color: #2a6f3a !important; color: #aff5b4 !important; text-decoration: none !important; }
+        /* Catch all inline ins/del highlights regardless of parent class */
+        .d2h-code-line-ctn del { background-color: #6e3630 !important; color: #ffa198 !important; text-decoration: none !important; }
+        .d2h-code-line-ctn ins { background-color: #2a6f3a !important; color: #aff5b4 !important; text-decoration: none !important; }
         .d2h-info { background-color: #1c2a3a !important; color: #58a6ff !important; }
-        .d2h-code-line { color: #c9d1d9; }
+        .d2h-info .d2h-code-line-ctn { background-color: #1c2a3a !important; }
+        .d2h-code-line { color: #c9d1d9; padding: 0 0 0 0.5em !important; line-height: 20px !important; }
+        .d2h-code-side-linenumber, .d2h-code-linenumber { line-height: 20px !important; padding: 0 8px !important; height: auto !important; }
+        .d2h-code-line-ctn { line-height: 20px !important; }
+        .d2h-code-line-prefix { line-height: 20px !important; }
+        /* Force compact row height — collapse whitespace text nodes via font-size:0 on code tds */
+        .d2h-diff-tbody td { line-height: 20px !important; }
+        /* Linenumber cells: ensure visible, padded, not clipped */
+        td.d2h-code-side-linenumber,
+        td.d2h-code-linenumber {
+            padding: 0 8px !important;
+            overflow: visible !important;
+            display: table-cell !important;
+            text-align: right !important;
+            vertical-align: middle !important;
+        }
+        /* Code cells: collapse whitespace text nodes, add left padding for absolute linenumber */
+        .d2h-diff-tbody td:not(.d2h-code-side-linenumber):not(.d2h-code-linenumber) {
+            font-size: 0 !important;
+        }
+        /* Side-by-side code line container */
+        .d2h-code-side-line {
+            font-size: 0.8rem !important;
+            line-height: 20px !important;
+            padding: 0 8px !important;
+            display: flex !important;
+        }
+        .d2h-code-side-line span { white-space: pre-wrap; word-break: break-all; }
+        /* Line-by-line code line container */
+        .d2h-code-line {
+            font-size: 0.8rem !important;
+            line-height: 20px !important;
+            padding: 0 8px !important;
+            display: flex !important;
+        }
+        .d2h-code-line span { white-space: pre-wrap; word-break: break-all; }
         .d2h-file-diff { border-color: #30363d; }
         .d2h-diff-tbody tr td { border-color: #30363d !important; }
-        .d2h-emptyplaceholder { background-color: #1a1f29 !important; }
+        /* Empty placeholders — must be solid dark, no stripes */
+        .d2h-emptyplaceholder,
+        .d2h-code-side-emptyplaceholder-info,
+        td.d2h-emptyplaceholder,
+        .d2h-emptyplaceholder .d2h-code-line-ctn,
+        .d2h-emptyplaceholder .d2h-code-line-prefix,
+        .d2h-emptyplaceholder .d2h-code-side-line {
+            background: #161b22 !important;
+            background-color: #161b22 !important;
+            background-image: none !important;
+            border-color: #30363d !important;
+        }
+        /* Ensure no white backgrounds leak through */
+        .d2h-diff-table td { background-color: #0d1117; }
+        .d2h-diff-table td.d2h-code-side-linenumber { background-color: #161b22 !important; }
+        .d2h-diff-table tr { background: none !important; background-color: transparent !important; }
+        /* Line-by-line mode (used for added/deleted files) */
+        .d2h-code-linenumber { background: #161b22 !important; color: #484f58 !important; border-color: #30363d !important; }
 
         /* Spinner */
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -596,11 +661,14 @@
 
             var diffString = 'diff --git a/' + f.path + ' b/' + f.path + '\n' + f.diff;
 
+            // Use line-by-line for added/deleted (no empty half), side-by-side for modified
+            var format = (f.status === 'added' || f.status === 'deleted') ? 'line-by-line' : 'side-by-side';
+
             try {
                 var diff2htmlUi = new Diff2HtmlUI(diffContainer, diffString, {
                     drawFileList: false,
                     matching: 'lines',
-                    outputFormat: 'side-by-side',
+                    outputFormat: format,
                     highlight: true,
                 });
                 diff2htmlUi.draw();
@@ -612,6 +680,16 @@
         }
 
         content.appendChild(body);
+
+        // Fix padding: measure actual linenumber width and set padding on code cells
+        var lnCell = content.querySelector('.d2h-code-side-linenumber, .d2h-code-linenumber');
+        if (lnCell) {
+            var lnWidth = lnCell.getBoundingClientRect().width;
+            var codeCells = content.querySelectorAll('td:not(.d2h-code-side-linenumber):not(.d2h-code-linenumber)');
+            for (var ci = 0; ci < codeCells.length; ci++) {
+                codeCells[ci].style.paddingLeft = lnWidth + 'px';
+            }
+        }
 
         // Highlight selected file in tree
         document.querySelectorAll('.tree-file').forEach(function (el) {
