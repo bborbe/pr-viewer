@@ -1,5 +1,5 @@
 ---
-status: executing
+status: approved
 spec: [002-local-git-provider]
 summary: Added local git provider for /api/compare with provider= query parameter routing, path validation, subprocess-based git diff, and full pytest coverage
 container: pr-viewer-004-spec-002-backend

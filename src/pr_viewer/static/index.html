@@ -59,6 +59,28 @@
             box-shadow: 0 0 0 2px rgba(88,166,255,0.2);
         }
 
+        #provider-select {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            padding: 5px 10px;
+            font-size: 0.875rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #provider-select:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88,166,255,0.2);
+        }
+
+        #repo-label {
+            color: #8b949e;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
         #repo-input { width: 180px; }
         #base-input { width: 130px; }
         #head-input { width: 130px; }
@@ -403,6 +425,11 @@
 <div id="topbar">
     <h1>PR Viewer</h1>
     <form id="compare-form" onsubmit="return false;">
+        <select id="provider-select">
+            <option value="github">GitHub</option>
+            <option value="local">Local</option>
+        </select>
+        <label id="repo-label" for="repo-input">Repo (owner/repo)</label>
         <input id="repo-input" type="text" placeholder="owner/repo" autocomplete="off" spellcheck="false">
         <input id="base-input" type="text" placeholder="base ref" autocomplete="off" spellcheck="false">
         <input id="head-input" type="text" placeholder="head ref" autocomplete="off" spellcheck="false">
@@ -438,6 +465,24 @@
 <script>
 (function () {
     'use strict';
+
+    // ── Provider UI ──────────────────────────────────────────────────────────
+
+    function updateProviderUI(provider) {
+        var label = document.getElementById('repo-label');
+        var input = document.getElementById('repo-input');
+        if (provider === 'local') {
+            label.textContent = 'Repo path';
+            input.placeholder = '/Users/you/your-repo';
+        } else {
+            label.textContent = 'Repo (owner/repo)';
+            input.placeholder = 'owner/repo';
+        }
+    }
+
+    document.getElementById('provider-select').addEventListener('change', function () {
+        updateProviderUI(this.value);
+    });
 
     // ── Utilities ────────────────────────────────────────────────────────────
 
@@ -617,7 +662,8 @@
         var repo = document.getElementById('repo-input').value.trim();
         var base = document.getElementById('base-input').value.trim();
         var head = document.getElementById('head-input').value.trim();
-        updateURL(repo, base, head, path);
+        var provider = document.getElementById('provider-select').value;
+        updateURL(provider, repo, base, head, path);
         var content = document.getElementById('diff-content');
         content.innerHTML = '';
 
@@ -739,13 +785,14 @@
         var repo = document.getElementById('repo-input').value.trim();
         var base = document.getElementById('base-input').value.trim();
         var head = document.getElementById('head-input').value.trim();
+        var provider = document.getElementById('provider-select').value;
 
         if (!repo || !base || !head) {
             showError('Please fill in all three fields.');
             return;
         }
 
-        updateURL(repo, base, head, null);
+        updateURL(provider, repo, base, head, null);
         clearBanners();
         setLoading(true);
 
@@ -754,7 +801,8 @@
         document.getElementById('diff-content').innerHTML = '<div class="diff-panel-empty">Loading…</div>';
 
         try {
-            var url = '/api/compare?repo=' + encodeURIComponent(repo)
+            var url = '/api/compare?provider=' + encodeURIComponent(provider)
+                    + '&repo=' + encodeURIComponent(repo)
                     + '&base=' + encodeURIComponent(base)
                     + '&head=' + encodeURIComponent(head);
 
@@ -790,8 +838,9 @@
 
     // ── URL Sync ─────────────────────────────────────────────────────────────
 
-    function updateURL(repo, base, head, file) {
+    function updateURL(provider, repo, base, head, file) {
         var params = new URLSearchParams();
+        if (provider) params.set('provider', provider);
         if (repo) params.set('repo', repo);
         if (base) params.set('base', base);
         if (head) params.set('head', head);
@@ -802,10 +851,13 @@
 
     function loadFromURL() {
         var params = new URLSearchParams(window.location.search);
+        var provider = params.get('provider') || 'github';
         var repo = params.get('repo') || '';
         var base = params.get('base') || '';
         var head = params.get('head') || '';
         pendingFile = params.get('file') || '';
+        document.getElementById('provider-select').value = provider;
+        updateProviderUI(provider);
         if (repo) document.getElementById('repo-input').value = repo;
         if (base) document.getElementById('base-input').value = base;
         if (head) document.getElementById('head-input').value = head;
