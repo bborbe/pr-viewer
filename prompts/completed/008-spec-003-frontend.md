@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: [003-bitbucket-server-provider]
+summary: Bitbucket Server dropdown option, updateProviderUI branch, and frontend test were already implemented; all 50 tests pass and precommit exits 0.
+container: pr-viewer-008-spec-003-frontend
+dark-factory-version: v0.94.1-dirty
 created: "2026-04-03T17:00:00Z"
 queued: "2026-04-03T19:06:29Z"
+started: "2026-04-03T19:22:58Z"
+completed: "2026-04-03T19:23:46Z"
 ---
 
 <summary>
