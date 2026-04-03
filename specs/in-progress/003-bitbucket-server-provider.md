@@ -1,5 +1,5 @@
 ---
-status: generating
+status: approved
 approved: "2026-04-03T16:17:22Z"
 generating: "2026-04-03T16:17:23Z"
 branch: dark-factory/bitbucket-server-provider

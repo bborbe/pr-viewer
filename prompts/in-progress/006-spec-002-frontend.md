@@ -1,9 +1,11 @@
 ---
-status: approved
+status: executing
 spec: [002-local-git-provider]
+container: pr-viewer-006-spec-002-frontend
+dark-factory-version: v0.94.1-dirty
 created: "2026-04-03T15:00:00Z"
 queued: "2026-04-03T16:17:05Z"
-started: "2026-04-03T16:25:43Z"
+started: "2026-04-03T17:59:29Z"
 completed: "2026-04-03T16:57:30Z"
 ---
 
