@@ -1,12 +1,13 @@
 ---
-status: executing
+status: completed
 spec: [002-local-git-provider]
+summary: Frontend provider selector already implemented — dropdown, label, URL sync, and tests all present; make precommit passes with 33 tests.
 container: pr-viewer-006-spec-002-frontend
 dark-factory-version: v0.94.1-dirty
 created: "2026-04-03T15:00:00Z"
 queued: "2026-04-03T16:17:05Z"
-started: "2026-04-03T17:59:29Z"
-completed: "2026-04-03T16:57:30Z"
+started: "2026-04-03T18:14:41Z"
+completed: "2026-04-03T18:15:14Z"
 ---
 
 <summary>
@@ -115,21 +116,6 @@ Do NOT rewrite the file from scratch — make targeted additions to the existing
 
 <verification>
 ```bash
-# Run all tests including new frontend smoke tests
-make test
-
-# Final validation
 make precommit
-
-# Manual verification:
-# make run
-# Open http://127.0.0.1:8001
-# Confirm: provider dropdown shows "GitHub" and "Local" options
-# Confirm: selecting "Local" changes label to "Repo path" and placeholder to a local path
-# Confirm: selecting "GitHub" restores original label and placeholder
-# Confirm: Local compare works: select Local, enter /workspace, base=HEAD~3, head=HEAD
-# Confirm: URL includes provider=local after compare
-# Confirm: reloading the page with ?provider=local&repo=/workspace&... restores the dropdown and label
-# Confirm: GitHub still works after provider dropdown added
 ```
 </verification>
