@@ -1,0 +1,4 @@
+pr: true
+worktree: true
+autoMerge: true
+validationPrompt: docs/dod.md
