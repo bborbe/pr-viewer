@@ -8,9 +8,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from pr_viewer.providers.github import GitHubCompareClient
+from pr_viewer.providers.local import LocalGitCompareClient
 
 _REPO_RE = re.compile(r"^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$")
 _REF_RE = re.compile(r"^[a-zA-Z0-9._/:-]+$")
+_VALID_PROVIDERS = {"github", "local"}
 
 router = APIRouter(prefix="/api")
 
@@ -28,12 +30,13 @@ class CompareResponse(BaseModel):
 
 
 @router.get("/compare", response_model=CompareResponse)
-async def compare(repo: str, base: str, head: str) -> CompareResponse:
-    if not _REPO_RE.match(repo):
+async def compare(repo: str, base: str, head: str, provider: str = "github") -> CompareResponse:
+    if provider not in _VALID_PROVIDERS:
         raise HTTPException(
             status_code=400,
-            detail="Invalid repo format. Expected 'owner/repo'.",
+            detail="Unknown provider. Supported: github, local",
         )
+
     if not _REF_RE.match(base):
         raise HTTPException(
             status_code=400,
@@ -43,6 +46,17 @@ async def compare(repo: str, base: str, head: str) -> CompareResponse:
         raise HTTPException(
             status_code=400,
             detail="Invalid head ref. Allowed: alphanumeric, hyphens, dots, slashes, colons.",
+        )
+
+    if provider == "local":
+        local_client = LocalGitCompareClient()
+        return await local_client.compare(repo, base, head)
+
+    # provider == "github"
+    if not _REPO_RE.match(repo):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid repo format. Expected 'owner/repo'.",
         )
 
     token = os.environ.get("GITHUB_TOKEN", "")
