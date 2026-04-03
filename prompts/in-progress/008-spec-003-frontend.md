@@ -1,7 +1,8 @@
 ---
-status: created
+status: approved
 spec: [003-bitbucket-server-provider]
 created: "2026-04-03T17:00:00Z"
+queued: "2026-04-03T19:06:29Z"
 ---
 
 <summary>
@@ -87,7 +88,7 @@ These already exist and work. This prompt only extends them.
        assert "Bitbucket Server" in response.text
    ```
 
-4. **Update CHANGELOG.md**: Append under `## Unreleased`:
+4. **Update CHANGELOG.md**: Add a `## Unreleased` section at the top (if it doesn't already exist) and append:
    - `feat: Bitbucket Server option in provider dropdown with project/repo label and placeholder`
 </requirements>
 
@@ -103,18 +104,7 @@ These already exist and work. This prompt only extends them.
 
 <verification>
 ```bash
-# Run all tests
 make test
-
-# Final validation
 make precommit
-
-# Manual smoke test:
-# make run
-# Open http://127.0.0.1:8001
-# Verify: dropdown shows "GitHub", "Local", "Bitbucket Server"
-# Select Bitbucket Server → repo label shows "project/repo", placeholder "PROJ/my-repo"
-# Select GitHub → repo label shows "Repo (owner/repo)", placeholder "owner/repo"
-# Select Local → repo label shows "Repo path", placeholder "/Users/you/your-repo"
 ```
 </verification>

@@ -254,7 +254,7 @@ def test_large_diff_truncation(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_unknown_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     client = make_client(monkeypatch)
-    response = client.get("/api/compare?provider=bitbucket&repo=x&base=a&head=b")
+    response = client.get("/api/compare?provider=unknown_xyz&repo=x&base=a&head=b")
     assert response.status_code == 400
     assert "Unknown provider" in response.json()["detail"]
 
