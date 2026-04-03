@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: [001-commit-diff-viewer]
+summary: Built single-page frontend with collapsible file tree sidebar, side-by-side diff view via diff2html, and fixed factory.py to serve index.html at root with healthz registered before static mount.
+container: pr-viewer-003-spec-001-frontend
+dark-factory-version: v0.93.0
 created: "2026-04-03T12:00:00Z"
 queued: "2026-04-03T12:26:01Z"
+started: "2026-04-03T12:29:19Z"
+completed: "2026-04-03T12:31:41Z"
 branch: dark-factory/commit-diff-viewer
 ---
 
