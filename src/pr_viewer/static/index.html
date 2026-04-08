@@ -788,6 +788,9 @@
                     + '&repo=' + encodeURIComponent(repo)
                     + '&base=' + encodeURIComponent(base)
                     + '&head=' + encodeURIComponent(head);
+            var pageParams = new URLSearchParams(window.location.search);
+            var maxBytes = pageParams.get('max_bytes');
+            if (maxBytes) { url += '&max_bytes=' + encodeURIComponent(maxBytes); }
 
             var resp = await fetch(url);
 
@@ -804,7 +807,11 @@
             var data = await resp.json();
 
             if (data.truncated) {
-                showWarning('Diff truncated: showing first ' + data.files.length + ' of ' + data.total_files + ' files');
+                if (data.files.length < data.total_files) {
+                    showWarning('Showing first ' + data.files.length + ' of ' + data.total_files + ' files (diff truncated)');
+                } else {
+                    showWarning('Diff content truncated (size limit exceeded) — add ?max_bytes=<bytes> to URL to increase');
+                }
             }
 
             renderTree(data.files);

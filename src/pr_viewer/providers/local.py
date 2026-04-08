@@ -10,7 +10,7 @@ from fastapi import HTTPException
 if TYPE_CHECKING:
     from pr_viewer.api.compare import CompareResponse
 
-_MAX_DIFF_BYTES = 10 * 1024 * 1024  # 10 MB
+_MAX_DIFF_BYTES = 50 * 1024 * 1024  # 50 MB
 
 _NAME_STATUS_MAP: dict[str, str] = {
     "A": "added",
@@ -72,7 +72,9 @@ def _split_diff_by_file(diff_output: str) -> list[tuple[str, str]]:
 
 
 class LocalGitCompareClient:
-    async def compare(self, repo: str, base: str, head: str) -> CompareResponse:
+    async def compare(
+        self, repo: str, base: str, head: str, max_bytes: int | None = None
+    ) -> CompareResponse:
         from pr_viewer.api.compare import CompareResponse, FileChangeResponse
 
         # Path validation
@@ -127,10 +129,11 @@ class LocalGitCompareClient:
 
         status_map = _parse_name_status(name_status_result.stdout)
 
+        effective_limit = max_bytes if max_bytes is not None else _MAX_DIFF_BYTES
         raw_diff = diff_result.stdout
         truncated = False
-        if len(raw_diff.encode()) > _MAX_DIFF_BYTES:
-            raw_diff = raw_diff.encode()[:_MAX_DIFF_BYTES].decode(errors="replace")
+        if len(raw_diff.encode()) > effective_limit:
+            raw_diff = raw_diff.encode()[:effective_limit].decode(errors="replace")
             truncated = True
 
         file_diffs = _split_diff_by_file(raw_diff)

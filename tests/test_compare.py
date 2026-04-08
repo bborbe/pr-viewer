@@ -173,3 +173,40 @@ def test_github_other_error(monkeypatch: pytest.MonkeyPatch) -> None:
     response = client.get("/api/compare?repo=owner/repo&base=main&head=feature")
     assert response.status_code == 502
     assert "500" in response.json()["detail"]
+
+
+def test_max_bytes_too_small(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = make_client(monkeypatch)
+    response = client.get("/api/compare?repo=owner/repo&base=main&head=feature&max_bytes=500")
+    assert response.status_code == 400
+    assert "max_bytes out of range" in response.json()["detail"]
+
+
+def test_max_bytes_too_large(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = make_client(monkeypatch)
+    response = client.get("/api/compare?repo=owner/repo&base=main&head=feature&max_bytes=600000000")
+    assert response.status_code == 400
+    assert "max_bytes out of range" in response.json()["detail"]
+
+
+def test_max_bytes_forwarded_to_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    from unittest.mock import AsyncMock, patch
+
+    from pr_viewer.api.compare import CompareResponse
+
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+    app = create_app()
+    client = TestClient(app)
+
+    mock_response = CompareResponse(files=[], truncated=False, total_files=0)
+    with patch(
+        "pr_viewer.api.compare.LocalGitCompareClient.compare",
+        new_callable=AsyncMock,
+        return_value=mock_response,
+    ) as mock_compare:
+        response = client.get(
+            "/api/compare?provider=local&repo=/some/repo&base=main&head=feature&max_bytes=2048"
+        )
+
+    assert response.status_code == 200
+    mock_compare.assert_called_once_with("/some/repo", "main", "feature", max_bytes=2048)

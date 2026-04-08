@@ -237,8 +237,8 @@ def test_invalid_ref(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_large_diff_truncation(monkeypatch: pytest.MonkeyPatch) -> None:
     client = make_client(monkeypatch)
-    # Build a diff > 10 MB
-    large_diff = "diff --git a/big.py b/big.py\n" + ("+" + "x" * 99 + "\n") * 110_000
+    # Build a diff > 50 MB
+    large_diff = "diff --git a/big.py b/big.py\n" + ("+" + "x" * 99 + "\n") * 530_000
     with (
         mock_fs(),
         patch(
@@ -250,6 +250,34 @@ def test_large_diff_truncation(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["truncated"] is True
+
+
+def test_default_limit_is_50mb() -> None:
+    from pr_viewer.providers import local
+
+    assert local._MAX_DIFF_BYTES == 50 * 1024 * 1024
+
+
+def test_max_bytes_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = make_client(monkeypatch)
+    # Build a diff > 1024 bytes but within 50 MB
+    medium_diff = "diff --git a/file.py b/file.py\n" + ("+" + "x" * 99 + "\n") * 20
+    with (
+        mock_fs(),
+        patch(
+            "pr_viewer.providers.local._run_subprocess",
+            side_effect=[
+                _ok(stdout=".git"),
+                _ok(stdout="M\tfile.py\n"),
+                _ok(stdout=medium_diff),
+            ],
+        ),
+    ):
+        response = client.get(_URL + "&max_bytes=1024")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["truncated"] is True
 
 
 def test_unknown_provider(monkeypatch: pytest.MonkeyPatch) -> None:

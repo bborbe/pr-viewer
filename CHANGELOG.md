@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.5.0
+
+- fix: Distinguish "files truncated" vs "content truncated" in diff banner with actionable message for byte-cap case
+- feat: Raise default local provider diff size limit from 10 MB to 50 MB
+- feat: Accept `max_bytes` query parameter on `/compare` endpoint to override diff size limit per-request (local provider only, bounded 1 KB–500 MB)
+- feat: Forward `max_bytes` URL parameter from frontend to backend compare API
+
 ## v0.4.1
 
 - fix: Replace provider-specific "GitHub API limit" wording in truncation banner with generic message

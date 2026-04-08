@@ -31,12 +31,17 @@ class CompareResponse(BaseModel):
 
 
 @router.get("/compare", response_model=CompareResponse)
-async def compare(repo: str, base: str, head: str, provider: str = "github") -> CompareResponse:
+async def compare(
+    repo: str, base: str, head: str, provider: str = "github", max_bytes: int | None = None
+) -> CompareResponse:
     if provider not in _VALID_PROVIDERS:
         raise HTTPException(
             status_code=400,
             detail="Unknown provider. Supported: github, local, bitbucket",
         )
+
+    if max_bytes is not None and (max_bytes < 1024 or max_bytes > 500 * 1024 * 1024):
+        raise HTTPException(status_code=400, detail="max_bytes out of range")
 
     if not _REF_RE.match(base):
         raise HTTPException(
@@ -51,7 +56,7 @@ async def compare(repo: str, base: str, head: str, provider: str = "github") -> 
 
     if provider == "local":
         local_client = LocalGitCompareClient()
-        return await local_client.compare(repo, base, head)
+        return await local_client.compare(repo, base, head, max_bytes=max_bytes)
 
     if provider == "bitbucket":
         bitbucket_url = os.environ.get("BITBUCKET_URL", "")
