@@ -804,7 +804,7 @@
             var data = await resp.json();
 
             if (data.truncated) {
-                showWarning('Showing first ' + data.files.length + ' of ' + data.total_files + ' files (GitHub API limit)');
+                showWarning('Diff truncated: showing first ' + data.files.length + ' of ' + data.total_files + ' files');
             }
 
             renderTree(data.files);

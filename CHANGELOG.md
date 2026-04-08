@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.4.1
+
+- fix: Replace provider-specific "GitHub API limit" wording in truncation banner with generic message
+
 ## v0.4.0
 
 - feat: Bitbucket Server option in provider dropdown with project/repo label and placeholder
